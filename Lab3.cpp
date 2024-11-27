@@ -1,5 +1,4 @@
 #include <iostream>
-#include <stdexcept> // For std::invalid_argument
 
 using namespace std;
 
