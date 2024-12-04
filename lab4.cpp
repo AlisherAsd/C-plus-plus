@@ -150,6 +150,20 @@ int main() {
     i3.print();
     cout << "Override int(i): " << int(i) << endl;
     cout << "Override i[0]: " << i[0] << endl;
+
+
+    MyClass<double> d;
+    d.input();
+    d.print();
+
+    cout << "Override i2 = d: " << endl;
+    MyClass<double> d2 = d;
+    d2.print();
+    cout << "Override d3(d): " << endl;
+    MyClass<double> d3(d);
+    d3.print();
+    cout << "Override int(d): " << double(d) << endl;
+    cout << "Override d[0]: " << d[0] << endl;
     
     
     return 0;

@@ -3,18 +3,77 @@
 #include <typeinfo>
 using namespace std;
 
-class TPerson {
+class TObject {
 public:
     virtual void Show() = 0;
-    virtual ~TPerson() = default;
+    virtual ~TObject() {}
+};
+class Person : public TObject {
+protected:
+    std::string name;
+    int sex; // 1 - man, 0 - women
+public:
+    Person(const std::string& name, int sex) : name(name), sex(sex){}
+
+    ~Person() {
+        cout << "Destroying Person: " << name << endl;
+    }
+    int getSex(){
+        return sex;   
+    }
+
+    virtual void Show() override {
+        if (sex == 0) cout << "Person: " << name << " sex: woman" << endl;
+        else cout << "Person: " << name << " sex: man" << endl;
+    }
+};
+
+class Employee : public Person {
+public:
+    Employee(const std::string& name, int sex) : Person(name, sex) {}
+
+    void Show() override {
+        if (sex == 0) cout << "Employee: " << name << " sex: woman" << endl;
+        else cout << "Employee: " << name << " sex: man" << endl;
+    }
+    ~Employee() {
+        cout << "Destroying Employee: " << name << endl;
+}
+
+};
+
+class Worker : public Employee {
+public:
+    Worker(const std::string& name, int sex) : Employee(name, sex) {}
+
+    void Show() override {
+        if (sex == 0) cout << "Worker: " << name << " sex: woman" << endl;
+        else cout << "Worker: " << name << " sex: man" << endl;
+    }
+    ~Worker() {
+    cout << "Destroying Worker: " << name << endl;
+}
+
+};
+
+class Engineer : public Employee {
+public:
+    Engineer(const std::string& name, int sex) : Employee(name, sex) {}
+    void Show() override {
+        if (sex == 0) cout << "Engineer: " << name << " sex: woman" << endl;
+        else cout << "Engineer: " << name << " sex: man" << endl;
+    }
+    ~Engineer() {
+    std::cout << "Destroying Engineer: " << name << std::endl;
+}
 };
 
 struct TItem {
-    TPerson* person;
+    Person* item;
     TItem* next;
 };
 
-class TGroup : public TPerson {
+class TGroup : public TObject {
 protected:
     char name[50];
     TItem* first;
@@ -27,21 +86,22 @@ public:
         TItem* current = first;
         while (current) {
             TItem* next = current->next;
-            delete current->person;
+            delete current->item;
             delete current;
             current = next;
         }
     }
 
-    void Insert(TPerson* obj) {
-        TItem* newItem = new TItem{obj, first};
+    void Insert(Person* person) {
+        TItem* newItem = new TItem{person, first};
         first = newItem;
     }
+    
 
-    void ForEach(void (*action)(TPerson*)) {
+    void ForEach(void (*action)(Person*)) {
         TItem* current = first;
         while (current) {
-            action(current->person);
+            action(current->item);
             current = current->next;
         }
     }
@@ -50,67 +110,44 @@ public:
         cout << "Group: " << name << "\n";
         TItem* current = first;
         while (current) {
-            current->person->Show();
+            current->item->Show();
             current = current->next;
         }
     }
 };
 
-class Student : public TPerson {
-protected:
-    char name[50];
-    int course;
+
+
+
+class Group : public TGroup {
 public:
-    Student(const char* studentName, int courseNumber) : course(courseNumber) {
-        strncpy(name, studentName, 50);
-    }
+    Group(const char* enclosureName) : TGroup(enclosureName) {}
 
-    virtual ~Student() {
-        cout << "Destroying Student: " << name << endl;
-    }
-
-    void Show() override {
-        cout << "Student: " << name << ", Course: " << course << endl;
-    }
-
-    int GetCourse() const {
-        return course;
+    ~Group() override {
+        cout << "Destroying Group: " << name << endl;
     }
 };
 
-class Course : public TGroup {
-public:
-    Course(const char* courseName) : TGroup(courseName) {}
-
-    ~Course() override {
-        cout << "Destroying Course: " << name << endl;
-    }
-};
-
-void ShowStudentsInCourse(TPerson* person) {
-    if (Student* student = dynamic_cast<Student*>(person)) {
-        student->Show();
+void chooseMen(Person* person) {
+    if (person->getSex()) {
+        person->Show();
     }
 }
 
 int main(void) {
-    Course course("Computer Science");
+    Group enclosure("Safari Group");
 
-    course.Insert(new Student("Alice", 2));
-    course.Insert(new Student("Bob", 1));
-    course.Insert(new Student("Charlie", 2));
-    course.Insert(new Student("David", 3));
+    enclosure.Insert(new Employee("ksenya", 1));
+    enclosure.Insert(new Worker("masha", 1));
+    enclosure.Insert(new Worker("sergey", 0));
+    enclosure.Insert(new Worker("igor", 0));
+    enclosure.Insert(new Worker("semen", 0));
 
-    cout << "*** All students in the course ***" << endl;
-    course.Show();
+    cout << "*** All people in the group ***" << endl;
+    enclosure.Show();
 
-    cout << "\n*** List of all students in course 2 ***" << endl;
-    course.ForEach([](TPerson* person) { 
-        Student* student = dynamic_cast<Student*>(person);
-        if (student && student->GetCourse() == 2) {
-            student->Show();
-        }
-    });
+    cout << "\n*** List of all man ***" << endl;
+    enclosure.ForEach(chooseMen);
 
     return 0;
 }
