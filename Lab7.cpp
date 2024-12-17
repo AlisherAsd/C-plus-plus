@@ -1,9 +1,24 @@
 #include <iostream>
 #include <stdexcept> // Для std::runtime_error
+#include <string>
 
 using namespace std;
 
 const int defaultMaxSize = 10;
+
+
+
+class MatrixException : public exception {
+    string message;
+public:
+    explicit MatrixException(const string& msg) : message(msg) {}
+
+    const char* what() const noexcept override {
+        return message.c_str();
+    }
+};
+
+
 
 class Matrix {
 
@@ -33,36 +48,28 @@ public:
 
     // Default constructor
     Matrix() : row(defaultMaxSize), col(defaultMaxSize) {
-        try {
+        
             matrix = new double*[row];
             for (int i = 0; i < row; i++) {
                 matrix[i] = new double[col]();
             }
-        } catch (const std::bad_alloc& e) {
-            cerr << "Memory allocation failed: " << e.what() << endl;
-            exit(EXIT_FAILURE);
-        }
+       
     }
 
     // Parameterized constructor
     Matrix(int row, int col) : row(row), col(col) {
         if (row <= 0 || col <= 0) {
-            throw std::invalid_argument("row or col must be greater than 0.");
+            throw MatrixException("Максимальный размер матрицы должен быть положительным");
         }
-        try {
             matrix = new double*[row];
             for (int i = 0; i < row; i++) {
                 matrix[i] = new double[col]();
             }
-        } catch (const std::bad_alloc& e) {
-            cerr << "Memory allocation failed: " << e.what() << endl;
-            exit(EXIT_FAILURE);
-        }
+     
     }
 
     // Copy constructor
     Matrix(const Matrix &other) : row(other.row), col(other.col) {
-        try {
             matrix = new double*[row];
             for (int i = 0; i < row; i++) {
                 matrix[i] = new double[col];
@@ -70,10 +77,7 @@ public:
                     matrix[i][j] = other.matrix[i][j];
                 }
             }
-        } catch (const std::bad_alloc& e) {
-            cerr << "Memory allocation failed: " << e.what() << endl;
-            exit(EXIT_FAILURE);
-        }
+       
     }
 
     Matrix& operator=(const Matrix &other) {
@@ -87,7 +91,6 @@ public:
         row = other.row;
         col = other.col;
 
-        try {
             matrix = new double*[row];
             for (int i = 0; i < row; i++) {
                 matrix[i] = new double[col];
@@ -95,10 +98,7 @@ public:
                     matrix[i][j] = other.matrix[i][j];
                 }
             }
-        } catch (const std::bad_alloc& e) {
-            cerr << "Memory allocation failed: " << e.what() << endl;
-            exit(EXIT_FAILURE);
-        }
+       
 
         return *this;
     }
@@ -119,7 +119,7 @@ public:
     // Subtraction operator
     Matrix operator-(const Matrix& other) const {
         if (!sizeEqual(other)) {
-            throw std::invalid_argument("Matrices dimensions do not match.");
+            throw MatrixException("Матрицы имеют разный размер");
         }
 
         Matrix result(row, col);
@@ -144,7 +144,7 @@ public:
 
     double operator () (int x, int y) const {
         if (x < 0 || x >= row || y < 0 || y >= col) {
-            throw std::out_of_range("Index out of range.");
+            throw MatrixException("Выход за границы индекса");
         }
         return matrix[x][y];
     }
@@ -154,12 +154,17 @@ public:
         for (int i = 0; i < this->row; i++) {
             for (int j = 0; j < this->col; j++) {
                 cout << "Enter element for row " << i << " column " << j << ": ";
-                try {
                     cin >> this->matrix[i][j];
-                } catch (...) {
-                    cerr << "Invalid input. Please enter a number." << endl;
-                    j--; // Decrement j to repeat the input for the same element
-                }
+                
+            }
+        }
+    }
+
+    void AutoInput() {
+        for (int i = 0; i < this->row; i++) {
+            for (int j = 0; j < this->col; j++) {
+                this->matrix[i][j] = 1;
+                
             }
         }
     }
@@ -186,46 +191,47 @@ public:
 
 int main() {
     try {
-        Matrix one(2, 2);
-        one.input();
+        int x, y;
+        cout << "Введите размер матрицы 1" << endl;
+        cout << "Введите х >= 0: ";
+        cin >> x;
+        cout << "Введите y >= 0: ";
+        cin >> y;
+
+        Matrix one(x, y);
+        one.AutoInput();
         cout << "Matrix One:" << endl;
         one.print();
 
-        Matrix two(2, 2);
-        two.input();
+        cout << "Введите размер матрицы 1 (друго1 для проверки равенства размера)" << endl;
+        cout << "Введите х >= 0: ";
+        cin >> x;
+        cout << "Введите y >= 0: ";
+        cin >> y;
+        Matrix two(x, y);
+        two.AutoInput();
         cout << "Matrix Two:" << endl;
         two.print();
 
-        // if (one == two) {
-        //     cout << "Matrices are equal." << endl;
-        // }   
-
+        // Ошибка при сравнении размера матриц
         Matrix rasnostmatrix = one - two;
         cout << "Result of rasnost matrix:" << endl;
-        rasnostmatrix.print();
 
-        double ras;
-        cout << "Enter chislo for rasnost: ";
-        cin >> ras;
-        Matrix rasnostchisel = rasnostmatrix - ras;
-        cout << "\n Result of rasnost chisel:" << endl;
-        rasnostchisel.print();
-
-        int x, y;
-        cout << "enter x: ";
+        // Ошибка при выходе за границу
+        cout << "Введите индексы элемента" << endl;
+        cout << "Введите х >= 0: ";
         cin >> x;
-        cout << "enter y: ";
+        cout << "Введите y >= 0: ";
         cin >> y;
+        cout << "\n matrix(" << x << ", " << y << "): " << one(x, y);
 
-        cout << "\n matrix(" << x << ", " << y << "): " << rasnostchisel(x, y);
-
-        cout << "\n override =: " << endl;
-        Matrix ravno = rasnostchisel;
-        ravno.print();
-
-    } catch (const std::exception& e) {
-        cerr << "An error occurred: " << e.what() << endl;
+    } catch (const MatrixException& ex) {
+        cout << "Произошла ошибка: " << ex.what() << endl;
     }
+    catch (const exception& ex) {
+        cout << "Произошла неизвестная ошибка: " << ex.what() << endl;
+    }
+    cout << "Программа завершена." << endl;
 
     return 0;
 }
