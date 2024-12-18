@@ -1,5 +1,5 @@
 #include <iostream>
-#include <stdexcept> // Для std::runtime_error
+#include <stdexcept> 
 #include <string>
 
 using namespace std;
@@ -10,6 +10,7 @@ const int defaultMaxSize = 10;
 
 class MatrixException : public exception {
     string message;
+    
 public:
     explicit MatrixException(const string& msg) : message(msg) {}
 
@@ -231,7 +232,7 @@ int main() {
     catch (const exception& ex) {
         cout << "Произошла неизвестная ошибка: " << ex.what() << endl;
     }
-    cout << "Программа завершена." << endl;
+    cout << "\nПрограмма завершена." << endl;
 
     return 0;
 }

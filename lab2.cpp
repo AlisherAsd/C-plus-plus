@@ -11,9 +11,9 @@ public:
 class Person : public TObject {
 protected:
     std::string name;
-    int sex; // 1 - man, 0 - women
+    bool sex; // 1 - man, 0 - women
 public:
-    Person(const std::string& name, int sex) : name(name), sex(sex){}
+    Person(const std::string& name, bool sex) : name(name), sex(sex){}
 
     ~Person() {
         cout << "Destroying Person: " << name << endl;
@@ -96,7 +96,8 @@ public:
         TItem* newItem = new TItem{person, first};
         first = newItem;
     }
-    
+
+   
 
     void ForEach(void (*action)(Person*)) {
         TItem* current = first;
@@ -114,6 +115,36 @@ public:
             current = current->next;
         }
     }
+    
+    
+      
+    TObject* Delete(TObject* p) {
+        TItem* current = first;
+        TItem* previous = nullptr;
+        while (current) {
+            if (current->item == p) {
+                if (previous) {
+                    previous->next = current->next;
+                } else {
+                    first = current->next;
+                }
+            TObject* deletedItem = current->item;
+            delete current;
+            return deletedItem;
+            }
+        previous = current;
+        current = current->next;
+        }
+        return nullptr;
+    }
+        
+    void DelDis(TObject* p) {
+        TObject* deleted = Delete(p);
+        if (deleted) {
+            delete deleted;
+        }
+    }
+
 };
 
 
@@ -134,16 +165,22 @@ void chooseMen(Person* person) {
     }
 }
 
+
 int main(void) {
     Group enclosure("Safari Group");
+    
+    Person* ks = new Person("ksenya", 0);
 
-    enclosure.Insert(new Employee("ksenya", 1));
-    enclosure.Insert(new Worker("masha", 1));
-    enclosure.Insert(new Worker("sergey", 0));
-    enclosure.Insert(new Worker("igor", 0));
-    enclosure.Insert(new Worker("semen", 0));
+    enclosure.Insert(ks);
+    enclosure.Insert(new Worker("masha", 0));
+    enclosure.Insert(new Worker("sergey", 1));
+    enclosure.Insert(new Worker("igor", 1));
+    enclosure.Insert(new Worker("semen", 1));
+    
+    enclosure.Delete(ks);
+    enclosure.DelDis(ks);
 
-    cout << "*** All people in the group ***" << endl;
+     cout << "*** All people in the group ***" << endl;
     enclosure.Show();
 
     cout << "\n*** List of all man ***" << endl;
